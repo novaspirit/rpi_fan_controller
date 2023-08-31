@@ -1,0 +1,33 @@
+version: '3.7'
+
+services:
+  rpi-pwm:
+    container_name: rpi-pwm
+    hostname: rpi-pwm
+    restart: unless-stopped
+
+    image: rpi-pwm
+    build:
+      context: .
+
+
+    # $$$  TODO:: RUN NOT AS ROOT --> Requires groups 'gpio' & 'video' --> groupadd ???  $$$
+    # user: "$PUID:$PGID"
+
+    # Reference: https://stackoverflow.com/a/48234752
+    devices:
+      - /dev/gpiomem
+      - /dev/vchiq
+
+    volumes:
+      - /sys:/sys
+
+
+    network_mode: "none"
+
+    env_file:
+      - .env
+
+    labels:
+     # Watchtower
+      - "com.centurylinklabs.watchtower.enable=false"
