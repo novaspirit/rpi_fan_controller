@@ -1,4 +1,5 @@
-# rpi_fan_controller
-simple python script for controller fan through board pin 6 on raspberry pi
+# RPi Fan Control (RPiFC)
+
+Python based script for controlling fan speed on Raspberry Pi via pwm.
 
 https://www.youtube.com/watch?v=lD7t-IGLjVM
