@@ -1,12 +1,12 @@
 version: '3.7'
 
 services:
-  rpi-pwm:
-    container_name: rpi-pwm
-    hostname: rpi-pwm
+  fan_control:
+    container_name: fan_control
+    hostname: fan_control
     restart: unless-stopped
 
-    image: rpi-pwm
+    image: fan_control
     build:
       context: .
 
