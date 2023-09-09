@@ -49,22 +49,22 @@ DC_STEP = 5
 
 
 # --- Functions
-def initPWM(pwm_pin):
+def init_pwm(pwm_pin):
     GPIO.setmode(GPIO.BOARD)
     GPIO.setwarnings(False)
     GPIO.setup(pwm_pin, GPIO.OUT)
     return GPIO.PWM(pwm_pin, 50)
 
-def readCPUTemp():
+def read_cpu_temp():
     tmp = os.popen('vcgencmd measure_temp').readline()
     return float( (tmp.replace("temp=","").replace("'C\n","")) )
 
-def createSetPwmCalcDC(pwm):
-    def setPwmCalcDC(dc_next):
+def create_set_pwm_dc(pwm):
+    def set_pwm_dc(dc_next):
         dc_applied = 0 if dc_next == 0 else clamp(dc_min, dc_next, dc_max)
         pwm.ChangeDutyCycle( dc_applied if not invert_pwm_signal else 100 - dc_applied )
         return dc_next, dc_applied
-    return setPwmCalcDC
+    return set_pwm_dc
 
 
 if __name__ == "__main__":
@@ -73,24 +73,24 @@ if __name__ == "__main__":
     print("\n")
 
     try:
-        pwm = initPWM( gpio_pwm_pin )
-        setPwmCalcDC = createSetPwmCalcDC(pwm)
+        pwm = init_pwm( gpio_pwm_pin )
+        set_pwm_dc = create_set_pwm_dc(pwm)
 
         dc_cur = dc_applied = DC_INIT
         pwm.start( dc_cur if not invert_pwm_signal else 100 - dc_cur )
 
         cool_down = 0
         while True:
-            cpu_temp = readCPUTemp()
+            cpu_temp = read_cpu_temp()
 
             if (cpu_temp > cpu_temp_threshold_degrees):         # fanUp
                 if dc_cur < 100:
-                    dc_cur, dc_applied = setPwmCalcDC( dc_cur + DC_STEP )
+                    dc_cur, dc_applied = set_pwm_dc( dc_cur + DC_STEP )
                 cool_down = cooldown_factor -1
             elif (cpu_temp < cpu_temp_threshold_degrees):       # fanDown
                 if cool_down == 0:
                     if dc_cur > 0:
-                        dc_cur, dc_applied = setPwmCalcDC( dc_cur - DC_STEP )
+                        dc_cur, dc_applied = set_pwm_dc( dc_cur - DC_STEP )
                 else:
                     cool_down -= 1
 
