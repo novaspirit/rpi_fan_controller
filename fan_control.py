@@ -5,13 +5,31 @@ from time import sleep
 import os
 import sys
 
-from distutils.util import strtobool
-
 from datetime import datetime
 
 
 def clamp(minn, n, maxn):
     return sorted([minn, n, maxn])[1]
+
+def strtobool(value):
+    _MAP = {
+        'y': True,
+        'yes': True,
+        't': True,
+        'true': True,
+        'on': True,
+        '1': True,
+        'n': False,
+        'no': False,
+        'f': False,
+        'false': False,
+        'off': False,
+        '0': False
+    }
+    try:
+        return _MAP[str(value).lower()]
+    except KeyError:
+        raise ValueError('"{}" is not a valid bool value'.format(value))
 
 # Globals / Consts
 logging_enabled = strtobool( os.getenv('LOGGING_ENABLED', 'False') )
