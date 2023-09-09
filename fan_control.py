@@ -47,13 +47,15 @@ dc_max = clamp( dc_min, float( os.getenv('DC_MAX', 100) ), 100 )
 DC_INIT = 0          # WHEN STARTING APP: FAN OFF
 DC_STEP = 5
 
+PWM_FREQ = 50
+
 
 # --- Functions
-def init_pwm(pwm_pin):
+def init_pwm(pwm_pin, pwm_freq):
     GPIO.setmode(GPIO.BOARD)
     GPIO.setwarnings(False)
     GPIO.setup(pwm_pin, GPIO.OUT)
-    return GPIO.PWM(pwm_pin, 50)
+    return GPIO.PWM(pwm_pin, pwm_freq)
 
 def read_cpu_temp():
     tmp = os.popen('vcgencmd measure_temp').readline()
@@ -73,7 +75,7 @@ if __name__ == "__main__":
     print("\n")
 
     try:
-        pwm = init_pwm( gpio_pwm_pin )
+        pwm = init_pwm( gpio_pwm_pin, PWM_FREQ )
         set_pwm_dc = create_set_pwm_dc(pwm)
 
         dc_cur = dc_applied = DC_INIT
