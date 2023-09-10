@@ -3,6 +3,7 @@ Description=fan_control
 After=multi-user.target
 
 [Service]
+User=piminvea
 Type=simple
 Restart=always
 ExecStart=/usr/local/bin/fan_control

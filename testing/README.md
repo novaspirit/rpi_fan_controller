@@ -1,9 +1,12 @@
 
-"Updated" version which [runs on Ubuntu Server](https://ubuntu.com/tutorials/gpio-on-raspberry-pi#1-overview)
+"Updated" version which uses HW PWM w/ the following pros:
+  - Less CPU utilization
+  - Runs on Ubuntu Server
 
 Installation (on Ubuntu):
-  - `sudo apt install python3-lgpio`
+  - `pip install rpi-hardware-pwm`
+  - Add overlay 2 enable HW pwm as explained [here](https://pypi.org/project/rpi-hardware-pwm/)
   - copy script to `/usr/local/bin`
-  - copy service to `/etc/systemd/system/`
+  - adapt `User` in service file & copy it to `/etc/systemd/system/`
   - `sudo systemctl daemon-reload`
   - `sudo systemctl enable fan_control`

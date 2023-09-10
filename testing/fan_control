@@ -4,7 +4,7 @@
 # TODO: Implement CLI options like here: https://github.com/tedsluis/raspberry-pi-pwm-fan-control/blob/main/fan.py
 
 
-import lgpio as sbc
+from rpi_hardware_pwm import HardwarePWM
 from time import sleep
 import os
 import sys
@@ -40,11 +40,11 @@ def strtobool(value):
 # Globals / Consts
 logging_enabled = strtobool( os.getenv('LOGGING_ENABLED', 'False') )
 
-gpio_pwm_pin = int( os.getenv('GPIO_PWM_PIN', 18) )                         # PWM gpio number used to drive PWM fan (gpio18 = pin 12)
+pwm_channel = int( os.getenv('PWM_CHANNEL', 0) )                           # PWM gpio number used to drive PWM fan (gpio18 = channel 12)
 invert_pwm_signal = strtobool( os.getenv('INVERT_PWM_SIGNAL', 'True') )                 # $$$$$$$$$    TODO: CHANGE
 
 cpu_temp_threshold_degrees = float( os.getenv('CPU_TEMP_THRESHOLD_DEGREES', 47) )
-update_interval_sec = clamp( 0.5, float( os.getenv('UPDATE_INTERVAL_SEC', 6) ), 60 )    # $$$$$$$$$    TODO: CHANGE
+update_interval_sec = clamp( 0.5, float( os.getenv('UPDATE_INTERVAL_SEC', 3) ), 60 )
 cooldown_factor = clamp( 1, int( os.getenv('COOLDOWN_FACTOR', 5) ), 1000 )  # How long the fan should continue spinning before slowing down (= COOLDOWN_FACTOR x UPDATE_INTERVAL_SEC)
 
 dc_min = clamp( 0, float( os.getenv('DC_MIN', 35) ), 100 )                              # $$$$$$$$$    TODO: CHANGE
@@ -53,15 +53,12 @@ dc_max = clamp( dc_min, float( os.getenv('DC_MAX', 100) ), 100 )
 DC_INIT = 0                                                                 # WHEN STARTING APP: FAN OFF
 DC_STEP = 5
 
-PWM_FREQ = 50
+PWM_FREQ = clamp( 0, float( os.getenv('PWM_FREQ', 10000) ), 10000 )         # ( Would lead 2 high CPU util on SW PWM )
 
 
 # --- Functions
-PWM = namedtuple('PWM', ['handle', 'pin', 'freq'])
-def init_pwm(pwm_pin, pwm_freq):
-    handle = sbc.gpiochip_open(0)
-    sbc.gpio_claim_output(handle, pwm_pin)
-    return PWM( handle, pwm_pin, pwm_freq )
+def init_pwm(pwm_channel, pwm_freq):
+    return HardwarePWM(pwm_channel=0, hz=pwm_freq)
 
 def read_cpu_temp():
     res = os.popen('cat /sys/devices/virtual/thermal/thermal_zone0/temp').readline()
@@ -71,7 +68,7 @@ def read_cpu_temp():
 def create_set_pwm_dc(pwm):
     def set_pwm_dc(dc_next):
         dc_applied = 0 if dc_next == 0 else clamp(dc_min, dc_next, dc_max)
-        sbc.tx_pwm(pwm.handle, pwm.pin, pwm.freq, dc_applied if not invert_pwm_signal else 100 - dc_applied)
+        pwm.change_duty_cycle(dc_applied if not invert_pwm_signal else 100 - dc_applied)
         return dc_next, dc_applied
     return set_pwm_dc
 
@@ -80,11 +77,11 @@ if __name__ == "__main__":
     print(f"Running as user '{os.path.split(os.path.expanduser('~'))[-1]}' on '{os.uname()[1]}'")
 
     try:
-        pwm = init_pwm( gpio_pwm_pin, PWM_FREQ )
-        print(f"{logging_enabled=} {pwm.pin=} {pwm.freq=} {invert_pwm_signal=} {DC_INIT=} {DC_STEP=} {dc_min=} {dc_max=} {cpu_temp_threshold_degrees=} {update_interval_sec=}")
+        pwm = init_pwm( pwm_channel, PWM_FREQ )
+        print(f"{logging_enabled=} {pwm_channel=} {PWM_FREQ=} {invert_pwm_signal=} {DC_INIT=} {DC_STEP=} {dc_min=} {dc_max=} {cpu_temp_threshold_degrees=} {update_interval_sec=}")
         print("\n")
         set_pwm_dc = create_set_pwm_dc(pwm)
-        set_pwm_dc(0)
+        pwm.start(0)
 
         dc_cur = dc_applied = DC_INIT
 
@@ -110,5 +107,4 @@ if __name__ == "__main__":
 
     except KeyboardInterrupt:
         set_pwm_dc(0)
-        sbc.gpiochip_close(pwm.handle)
-        pwm = None
+        pwm.stop()
