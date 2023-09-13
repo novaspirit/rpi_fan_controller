@@ -41,13 +41,13 @@ def strtobool(value):
 logging_enabled = strtobool( os.getenv('LOGGING_ENABLED', 'False') )
 
 pwm_channel = int( os.getenv('PWM_CHANNEL', 0) )                           # PWM gpio number used to drive PWM fan (gpio18 = channel 12)
-invert_pwm_signal = strtobool( os.getenv('INVERT_PWM_SIGNAL', 'True') )                 # $$$$$$$$$    TODO: CHANGE
+invert_pwm_signal = strtobool( os.getenv('INVERT_PWM_SIGNAL', 'False') )
 
 cpu_temp_threshold_degrees = float( os.getenv('CPU_TEMP_THRESHOLD_DEGREES', 47) )
 update_interval_sec = clamp( 0.5, float( os.getenv('UPDATE_INTERVAL_SEC', 3) ), 60 )
 cooldown_factor = clamp( 1, int( os.getenv('COOLDOWN_FACTOR', 5) ), 1000 )  # How long the fan should continue spinning before slowing down (= COOLDOWN_FACTOR x UPDATE_INTERVAL_SEC)
 
-dc_min = clamp( 0, float( os.getenv('DC_MIN', 35) ), 100 )                              # $$$$$$$$$    TODO: CHANGE
+dc_min = clamp( 0, float( os.getenv('DC_MIN', 0) ), 100 )
 dc_max = clamp( dc_min, float( os.getenv('DC_MAX', 100) ), 100 )
 
 DC_INIT = 0                                                                 # WHEN STARTING APP: FAN OFF
