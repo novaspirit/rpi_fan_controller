@@ -1,0 +1,35 @@
+---
+version: '3.7'
+
+services:
+  fan_control:
+    container_name: fan_control
+    hostname: fan_control
+    restart: unless-stopped
+
+    image: fan_control
+    build:
+      context: .
+
+
+    # $$$$$$$$$$$$$$$$$$  TODO:: RUN AS NON-ROOT  $$$$$$$$$$$$$$$$$$
+#    user: "$PUID:$PGID"
+    # Reference: https://stackoverflow.com/a/48234752
+#    devices:
+#      - /dev/gpiochip0
+#      - /dev/gpiochip1
+#      - /dev/gpiomem
+#      - /dev/vchiq
+#    volumes:
+#      - /sys/:/sys/:rw
+    privileged: true
+
+
+    network_mode: none
+
+    env_file:
+      - .env
+
+    labels:
+     # Watchtower
+      - "com.centurylinklabs.watchtower.enable=false"
